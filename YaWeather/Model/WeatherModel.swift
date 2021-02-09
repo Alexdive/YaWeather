@@ -7,17 +7,17 @@
 
 import Foundation
 
-struct WeatherModel: Codable {
-    let url: URL
+struct WeatherModel: Decodable {
+    let info: Info
     let fact: Fact
     let forecasts: [Forecast]
 }
 
-struct URL: Codable {
+struct Info: Decodable {
     let url: String
 }
 
-struct Fact: Codable {
+struct Fact: Decodable {
     let temp: Double
     let icon: String
     let condition: String
@@ -33,15 +33,15 @@ struct Fact: Codable {
     }
 }
 
-struct Forecast: Codable {
+struct Forecast: Decodable {
     let parts: Parts
 }
 
-struct Parts: Codable {
+struct Parts: Decodable {
     let day: Day
 }
 
-struct Day: Codable {
+struct Day: Decodable {
     let tempMin: Int?
     let tempMax: Int?
     
@@ -52,7 +52,8 @@ struct Day: Codable {
 }
 
 
-struct Weather {
+
+struct Weather: Codable {
     var name: String = "Город"
     var temperature: Double = 0.0
     var temperatureString: String {
@@ -95,7 +96,7 @@ struct Weather {
     init?(weatherData: WeatherModel) {
         temperature = weatherData.fact.temp
         conditionCode = weatherData.fact.icon
-        url = weatherData.url.url
+        url = weatherData.info.url
         condition = weatherData.fact.condition
         pressureMm = weatherData.fact.pressureMm
         windSpeed = weatherData.fact.windSpeed

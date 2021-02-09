@@ -6,25 +6,46 @@
 //
 
 import Foundation
+import CoreLocation
 
-class UD {
+struct CityCoordinate: Codable {
+    let city: String
+    let lon: Double
+    let lat: Double
+}
+
+class Storage {
     private let decoder = JSONDecoder()
     private let encoder = JSONEncoder()
     
-    static let shared = UD()
+    static let shared = Storage()
     
-    private let recordWeatherModelKey = "weatherDataKey"
+    private let storageWeatherKey = "storageWeatherKey"
+    private let coordinatesKey = "coordinatesKey"
     
-    var recordWeatherModel: [WeatherModel] {
+    var cityCoordinate: [CityCoordinate] {
         get {
-            guard let encodedData = UserDefaults.standard.array(forKey: recordWeatherModelKey) as? [Data] else {
+            guard let encodedData = UserDefaults.standard.array(forKey: coordinatesKey) as? [Data] else {
                 return []
             }
-            return encodedData.map { try! decoder.decode(WeatherModel.self, from: $0)}
+            return encodedData.map { try! decoder.decode(CityCoordinate.self, from: $0)}
         }
         set {
             let data = newValue.map { try? encoder.encode($0)}
-            UserDefaults.standard.set(data, forKey: recordWeatherModelKey)
+            UserDefaults.standard.set(data, forKey: coordinatesKey)
+        }
+    }
+    
+    var cityWeather: [Weather] {
+        get {
+            guard let encodedData = UserDefaults.standard.array(forKey: storageWeatherKey) as? [Data] else {
+                return []
+            }
+            return encodedData.map { try! decoder.decode(Weather.self, from: $0)}
+        }
+        set {
+            let data = newValue.map { try? encoder.encode($0)}
+            UserDefaults.standard.set(data, forKey: storageWeatherKey)
         }
     }
 }
