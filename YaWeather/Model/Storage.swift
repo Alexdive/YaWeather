@@ -8,12 +8,6 @@
 import Foundation
 import CoreLocation
 
-struct CityCoordinate: Codable {
-    let city: String
-    let lon: Double
-    let lat: Double
-}
-
 class Storage {
     private let decoder = JSONDecoder()
     private let encoder = JSONEncoder()

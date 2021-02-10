@@ -7,7 +7,7 @@ target 'YaWeather' do
 
   # Pods for YaWeather
 
-	pod 'Alamofire'
 	pod 'SnapKit'
+	pod 'SwiftSVG'
 
 end

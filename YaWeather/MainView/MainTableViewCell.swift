@@ -83,5 +83,4 @@ class MainTableViewCell: UITableViewCell {
             $0.trailing.equalTo(contentView.snp.trailing).offset(-12)
         }
     }
-    
 }

@@ -10,7 +10,7 @@ import Foundation
 struct WeatherModel: Decodable {
     let info: Info
     let fact: Fact
-    let forecasts: [Forecast]
+    let forecasts: [ForecastModel]
 }
 
 struct Info: Decodable {
@@ -33,24 +33,15 @@ struct Fact: Decodable {
     }
 }
 
-struct Forecast: Decodable {
-    let parts: Parts
+struct ForecastModel: Decodable, Encodable {
+    var date: String = ""
+    var hours: [Hours]
 }
 
-struct Parts: Decodable {
-    let day: Day
+struct Hours: Decodable, Encodable {
+    var hour: String = ""
+    var temp: Int = 0
 }
-
-struct Day: Decodable {
-    let tempMin: Int?
-    let tempMax: Int?
-    
-    enum CodingKeys: String, CodingKey {
-        case tempMin = "temp_min"
-        case tempMax = "temp_max"
-    }
-}
-
 
 
 struct Weather: Codable {
@@ -64,8 +55,10 @@ struct Weather: Codable {
     var condition: String = ""
     var pressureMm: Int = 0
     var windSpeed: Double = 0.0
-    var tempMin: Int = 0
-    var tempMax: Int = 0
+    var forecasts: [ForecastModel] = [ForecastModel]()
+    var date: String = ""
+    var hour: String = ""
+    var temp: Int = 0
     
     var conditionString: String {
         switch condition {
@@ -100,10 +93,14 @@ struct Weather: Codable {
         condition = weatherData.fact.condition
         pressureMm = weatherData.fact.pressureMm
         windSpeed = weatherData.fact.windSpeed
-        tempMin = weatherData.forecasts.first!.parts.day.tempMin!
-        tempMax = weatherData.forecasts.first!.parts.day.tempMax!
+        forecasts = weatherData.forecasts
     }
     
     init() {}
 }
 
+struct CityCoordinate: Codable {
+    let city: String
+    let lon: Double
+    let lat: Double
+}

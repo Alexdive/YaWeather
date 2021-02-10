@@ -16,8 +16,8 @@ class MainTableViewController: UIViewController {
     
     private lazy var networkManager = NetworkWeatherManager()
     
-    private lazy var activityIndicator = UIActivityIndicatorView()
- 
+    private lazy var activityIndicator = ActivityIndicator.shared
+    
     private lazy var filterCitiesArray: [Weather] = []
     
     var cityNamesArray = ["Москва", "Иркутск", "Владивосток", "Чита", "Новосибирск", "Сочи", "Пенза", "Томск", "Санкт-Петербург", "Тюмень"]
@@ -41,10 +41,10 @@ class MainTableViewController: UIViewController {
         setupSearchController()
     }
     
-    @objc func refresh(_ sender: AnyObject) {
+    @objc func refresh() {
         if cityNamesArray.isEmpty {
             DispatchQueue.main.async {
-                self.activityIndicator.stopAnimating()
+                self.activityIndicator.stopAnimating(navigationItem: self.navigationItem)
                 self.refreshControl.endRefreshing()
                 self.pressPlusButton()
             }
@@ -54,26 +54,25 @@ class MainTableViewController: UIViewController {
     }
     
     private func setupCities() {
-        var storage = Storage.shared.cityWeather
-        var coord = Storage.shared.cityCoordinate
-        if storage.isEmpty {
-            storage = Array(repeating: Weather(), count: cityNamesArray.count)
+        if Storage.shared.cityWeather.isEmpty {
+            Storage.shared.cityWeather = Array(repeating: Weather(), count: cityNamesArray.count)
             for (index, city) in cityNamesArray.enumerated() {
-                storage[index].name = cityNamesArray[index].lowercased()
+                Storage.shared.cityWeather[index].name = cityNamesArray[index].lowercased()
                 getCoordinateFrom(city: city, completion: { (coordinate, error) in
                     guard let coordinate = coordinate, error == nil else { return }
-                    coord.append(CityCoordinate(city: city.lowercased(), lon: coordinate.longitude, lat: coordinate.latitude))
+                    Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(), lon: coordinate.longitude, lat: coordinate.latitude))
                 })
             }
+            print(Storage.shared.cityWeather.count)
             getWeather()
         } else {
             cityNamesArray.removeAll()
-            storage.forEach { cityNamesArray.append($0.name.lowercased()) }
-            if coord.isEmpty {
+            Storage.shared.cityWeather.forEach { cityNamesArray.append($0.name.lowercased()) }
+            if Storage.shared.cityCoordinate.isEmpty {
                 for city in cityNamesArray {
                     getCoordinateFrom(city: city, completion: { (coordinate, error) in
                         guard let coordinate = coordinate, error == nil else { return }
-                        coord.append(CityCoordinate(city: city.lowercased(), lon: coordinate.longitude, lat: coordinate.latitude))
+                        Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(), lon: coordinate.longitude, lat: coordinate.latitude))
                     })
                 }
             }
@@ -82,26 +81,26 @@ class MainTableViewController: UIViewController {
     }
     
     func getWeather() {
-        activityIndicator.startAnimating()
+        activityIndicator.animateActivity(title: "Загрузка...", view: self.view, navigationItem: navigationItem)
         getCityWeather(citiesArray: cityNamesArray) { (index, weather) in
-
+            
             Storage.shared.cityWeather[index] = weather
             Storage.shared.cityWeather[index].name = self.cityNamesArray[index].lowercased()
-
+            
             DispatchQueue.main.async {
                 self.tableView.reloadData()
-                self.activityIndicator.stopAnimating()
+                self.activityIndicator.stopAnimating(navigationItem: self.navigationItem)
                 self.refreshControl.endRefreshing()
             }
         }
     }
     
     func getCityWeather(citiesArray: [String], completionHandler: @escaping(Int, Weather) -> Void) {
-      
+        
         for (index, city) in citiesArray.enumerated() {
             if  let coordinate = Storage.shared.cityCoordinate.first(where: { $0.city.lowercased() == city.lowercased() }) {
                 self.networkManager.fetchWeather(latitude: coordinate.lat, longitude: coordinate.lon) { (weather) in
-                        completionHandler(index, weather)
+                    completionHandler(index, weather)
                 }
             } else {
                 getCoordinateFrom(city: city) { (coordinate, error) in
@@ -127,7 +126,7 @@ class MainTableViewController: UIViewController {
     }
     
     @objc func pressPlusButton() {
-        alertPlusCity(name: "Добавить город", placeholder: "Введите название города") { (city) in
+        alertAddCity(name: "Добавить город", placeholder: "Введите название города") { (city) in
             self.getCoordinateFrom(city: city) { (coordinate, error) in
                 if let coordinate = coordinate, error == nil {
                     self.cityNamesArray.append(city.lowercased())
@@ -159,25 +158,23 @@ class MainTableViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
                                                             target: self,
                                                             action: #selector(pressPlusButton))
+        tableView.separatorStyle = .none
+        tableView.backgroundColor = .clear
+        refreshControl.tintColor = .systemTeal
+        refreshControl.addTarget(self, action: #selector(self.refresh), for: .valueChanged)
+        tableView.addSubview(refreshControl)
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.showsHorizontalScrollIndicator = false
+        tableView.register(MainTableViewCell.self, forCellReuseIdentifier: MainTableViewCell.id)
+        
         view.addSubview(tableView)
-        tableView.addSubview(activityIndicator)
         tableView.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
             $0.left.equalToSuperview().offset(16)
             $0.right.equalToSuperview().offset(-16)
         }
-        activityIndicator.snp.makeConstraints {
-            $0.center.equalToSuperview()
-        }
-        tableView.separatorStyle = .none
-        tableView.backgroundColor = .clear
-        refreshControl.tintColor = .systemTeal
-        refreshControl.addTarget(self, action: #selector(self.refresh(_:)), for: .valueChanged)
-        tableView.addSubview(refreshControl)
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.register(MainTableViewCell.self, forCellReuseIdentifier: MainTableViewCell.id)
     }
     
     private func setupSearchController() {
@@ -194,7 +191,9 @@ class MainTableViewController: UIViewController {
 extension MainTableViewController: UISearchResultsUpdating {
     
     func updateSearchResults(for searchController: UISearchController) {
-        filterContentForSearchText(searchController.searchBar.text!)
+        if let text = searchController.searchBar.text {
+            filterContentForSearchText(text)
+        }
     }
     
     private func filterContentForSearchText(_ searchText: String) {
@@ -278,11 +277,20 @@ extension MainTableViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         return .zero
     }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let vc = DetailsViewController()
+        if isFiltering {
+            vc.weatherModel = filterCitiesArray[indexPath.section]
+        } else {
+            vc.weatherModel = Storage.shared.cityWeather[indexPath.section]
+        }
+        navigationController?.pushViewController(vc, animated: true)
+    }
 }
 
 extension MainTableViewController {
     
-    func alertPlusCity(name: String, placeholder: String, completionHandler: @escaping(String) -> Void) {
+    func alertAddCity(name: String, placeholder: String, completionHandler: @escaping(String) -> Void) {
         
         let alertController = UIAlertController(title: name, message: nil, preferredStyle: .alert)
         let alertOk = UIAlertAction(title: "Добавить", style: .default) { (action) in
@@ -290,7 +298,6 @@ extension MainTableViewController {
             guard let text = tftext?.text else { return }
             completionHandler(text)
         }
-        
         alertController.addTextField { (tf) in
             tf.placeholder = placeholder
         }
