@@ -23,9 +23,11 @@ class NetworkWeatherManager {
                 print(String(describing: error))
                 return
             }
-            
-            if let weather = self.parseJSON(withData: data) {
-                completionHandler(weather)
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                if let weather = self.parseJSON(withData: data) {
+                    completionHandler(weather)
+                }
             }
         }
         task.resume()

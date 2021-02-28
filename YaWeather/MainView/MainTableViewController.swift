@@ -10,9 +10,23 @@ import MapKit
 
 class MainTableViewController: UIViewController {
     
-    private lazy var tableView = UITableView(frame: .zero, style: .grouped)
+    private lazy var tableView: UITableView = {
+        let tableView = UITableView(frame: .zero, style: .grouped)
+        tableView.separatorStyle = .none
+        tableView.backgroundColor = .clear
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.showsVerticalScrollIndicator = false
+        tableView.register(MainTableViewCell.self, forCellReuseIdentifier: MainTableViewCell.id)
+        return tableView
+    }()
     
-    private lazy var refreshControl = UIRefreshControl()
+    private lazy var refreshControl: UIRefreshControl = {
+        let refreshControl = UIRefreshControl()
+        refreshControl.tintColor = .systemTeal
+        refreshControl.addTarget(self, action: #selector(self.refresh), for: .valueChanged)
+        return refreshControl
+    }()
     
     private lazy var networkManager = NetworkWeatherManager()
     
@@ -54,16 +68,18 @@ class MainTableViewController: UIViewController {
     }
     
     private func setupCities() {
+//        first launch of an app or when all cities have been deleted before exit
         if Storage.shared.cityWeather.isEmpty {
             Storage.shared.cityWeather = Array(repeating: Weather(), count: cityNamesArray.count)
             for (index, city) in cityNamesArray.enumerated() {
                 Storage.shared.cityWeather[index].name = cityNamesArray[index].lowercased()
                 getCoordinateFrom(city: city, completion: { (coordinate, error) in
                     guard let coordinate = coordinate, error == nil else { return }
-                    Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(), lon: coordinate.longitude, lat: coordinate.latitude))
+                    Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(),
+                                                                        lon: coordinate.longitude,
+                                                                        lat: coordinate.latitude))
                 })
             }
-            print(Storage.shared.cityWeather.count)
             getWeather()
         } else {
             cityNamesArray.removeAll()
@@ -72,7 +88,9 @@ class MainTableViewController: UIViewController {
                 for city in cityNamesArray {
                     getCoordinateFrom(city: city, completion: { (coordinate, error) in
                         guard let coordinate = coordinate, error == nil else { return }
-                        Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(), lon: coordinate.longitude, lat: coordinate.latitude))
+                        Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(),
+                                                                            lon: coordinate.longitude,
+                                                                            lat: coordinate.latitude))
                     })
                 }
             }
@@ -99,14 +117,18 @@ class MainTableViewController: UIViewController {
         
         for (index, city) in citiesArray.enumerated() {
             if  let coordinate = Storage.shared.cityCoordinate.first(where: { $0.city.lowercased() == city.lowercased() }) {
-                self.networkManager.fetchWeather(latitude: coordinate.lat, longitude: coordinate.lon) { (weather) in
+                self.networkManager.fetchWeather(latitude: coordinate.lat,
+                                                 longitude: coordinate.lon) { (weather) in
                     completionHandler(index, weather)
                 }
             } else {
                 getCoordinateFrom(city: city) { (coordinate, error) in
                     guard let coordinate = coordinate, error == nil else { return }
-                    Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(), lon: coordinate.longitude, lat: coordinate.latitude))
-                    self.networkManager.fetchWeather(latitude: coordinate.latitude, longitude: coordinate.longitude) { (weather) in
+                    Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(),
+                                                                        lon: coordinate.longitude,
+                                                                        lat: coordinate.latitude))
+                    self.networkManager.fetchWeather(latitude: coordinate.latitude,
+                                                     longitude: coordinate.longitude) { (weather) in
                         completionHandler(index, weather)
                     }
                 }
@@ -114,13 +136,15 @@ class MainTableViewController: UIViewController {
         }
     }
     
-    func getCoordinateFrom(city: String, completion: @escaping(_ coordinate: CLLocationCoordinate2D?, _ error: Error?) -> () ) {
+    func getCoordinateFrom(city: String, completion: @escaping(_ coordinate: CLLocationCoordinate2D?,
+                                                               _ error: Error?) -> () ) {
         let searchRequest = MKLocalSearch.Request()
         searchRequest.naturalLanguageQuery = city
         let search = MKLocalSearch(request: searchRequest)
         search.start { response, error in
             guard let response = response else { return }
-            let center = CLLocationCoordinate2D(latitude: response.boundingRegion.center.latitude, longitude: response.boundingRegion.center.longitude)
+            let center = CLLocationCoordinate2D(latitude: response.boundingRegion.center.latitude,
+                                                longitude: response.boundingRegion.center.longitude)
             completion(center, error)
         }
     }
@@ -130,14 +154,18 @@ class MainTableViewController: UIViewController {
             self.getCoordinateFrom(city: city) { (coordinate, error) in
                 if let coordinate = coordinate, error == nil {
                     self.cityNamesArray.append(city.lowercased())
-                    Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(), lon: coordinate.longitude, lat: coordinate.latitude))
+                    Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(),
+                                                                        lon: coordinate.longitude,
+                                                                        lat: coordinate.latitude))
                     var newCity = Weather()
                     newCity.name = city
                     Storage.shared.cityWeather.append(newCity)
                     self.getWeather()
                 }
                 else {
-                    let alertController = UIAlertController(title: "Город не найден", message: nil, preferredStyle: .alert)
+                    let alertController = UIAlertController(title: "Город не найден",
+                                                            message: nil,
+                                                            preferredStyle: .alert)
                     let alertOk = UIAlertAction(title: "Попробовать еще раз", style: .default) { (action) in
                         self.pressPlusButton()
                     }
@@ -158,17 +186,9 @@ class MainTableViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
                                                             target: self,
                                                             action: #selector(pressPlusButton))
-        tableView.separatorStyle = .none
-        tableView.backgroundColor = .clear
-        refreshControl.tintColor = .systemTeal
-        refreshControl.addTarget(self, action: #selector(self.refresh), for: .valueChanged)
-        tableView.addSubview(refreshControl)
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.showsHorizontalScrollIndicator = false
-        tableView.register(MainTableViewCell.self, forCellReuseIdentifier: MainTableViewCell.id)
-        
         view.addSubview(tableView)
+        tableView.addSubview(refreshControl)
+        
         tableView.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
@@ -238,8 +258,8 @@ extension MainTableViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let deleteAction = UIContextualAction(style: .destructive, title: "Удалить") { (_, _, completionHandler) in
-            
+        let deleteAction = UIContextualAction(style: .destructive,
+                                              title: "Удалить") { (_, _, completionHandler) in
             if self.isFiltering {
                 let editingRow = self.filterCitiesArray[indexPath.section]
                 if let index = self.filterCitiesArray.firstIndex(where: { $0.name.lowercased() == editingRow.name.lowercased() }){
