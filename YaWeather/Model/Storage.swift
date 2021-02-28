@@ -22,7 +22,16 @@ class Storage {
             guard let encodedData = UserDefaults.standard.array(forKey: coordinatesKey) as? [Data] else {
                 return []
             }
-            return encodedData.map { try! decoder.decode(CityCoordinate.self, from: $0)}
+            var arrayCoord: [CityCoordinate] = []
+            for data in encodedData {
+                do {
+                    let coord = try decoder.decode(CityCoordinate.self, from: data)
+                    arrayCoord.append(coord)
+                } catch {
+                    print("error")
+                }
+            }
+            return arrayCoord
         }
         set {
             let data = newValue.map { try? encoder.encode($0)}
@@ -35,7 +44,16 @@ class Storage {
             guard let encodedData = UserDefaults.standard.array(forKey: storageWeatherKey) as? [Data] else {
                 return []
             }
-            return encodedData.map { try! decoder.decode(Weather.self, from: $0)}
+            var arrayWeather: [Weather] = []
+            for data in encodedData {
+                do {
+                    let weather = try decoder.decode(Weather.self, from: data)
+                    arrayWeather.append(weather)
+                } catch {
+                    print("error")
+                }
+            }
+            return arrayWeather
         }
         set {
             let data = newValue.map { try? encoder.encode($0)}
