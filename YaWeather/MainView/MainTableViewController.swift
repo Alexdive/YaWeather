@@ -148,18 +148,55 @@ class MainTableViewController: UIViewController {
     private func setupViews() {
         title = "YaWeather"
         view.backgroundColor = .white
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
-                                                            target: self,
-                                                            action: #selector(pressPlusButton))
+
+        configureNavBar()
         view.addSubview(tableView)
         tableView.addSubview(refreshControl)
         
         tableView.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
-            $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
+            $0.bottom.equalToSuperview()
             $0.left.equalToSuperview().offset(16)
             $0.right.equalToSuperview().offset(-16)
         }
+    }
+    
+    private func configureNavBar() {
+
+        let largeConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular, scale: .medium)
+        let btnPlus = UIButton(type: .custom)
+        btnPlus.setBackgroundImage(UIImage(systemName: "plus.circle.fill", withConfiguration: largeConfig), for: .normal)
+        btnPlus.addTarget(self, action: #selector(pressPlusButton), for: .touchUpInside)
+        btnPlus.tintColor = .systemTeal
+        
+        let btnSearch = UIButton(type: .custom)
+        btnSearch.setBackgroundImage(UIImage(systemName: "magnifyingglass.circle.fill", withConfiguration: largeConfig), for: .normal)
+        btnSearch.addTarget(self, action: #selector(searchTap), for: .touchUpInside)
+        btnSearch.tintColor = .systemTeal
+        
+        let stackview = UIStackView(arrangedSubviews: [btnSearch, btnPlus])
+         stackview.distribution = .fillEqually
+         stackview.axis = .horizontal
+         stackview.alignment = .center
+         stackview.spacing = 12
+
+         let rightBarButton = UIBarButtonItem(customView: stackview)
+         self.navigationItem.rightBarButtonItem = rightBarButton
+    }
+    
+    @objc func searchTap() {
+        presentSearchBar()
+    }
+    
+    private func presentSearchBar() {
+        if navigationItem.searchController == nil {
+            navigationItem.searchController = searchController
+
+        } else {
+            navigationItem.searchController = nil
+        }
+        searchController.hidesNavigationBarDuringPresentation = true
+        searchController.obscuresBackgroundDuringPresentation = false
     }
     
     private func setupSearchController() {
@@ -167,7 +204,6 @@ class MainTableViewController: UIViewController {
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Поиск"
-        navigationItem.searchController = searchController
         definesPresentationContext = true
         navigationItem.hidesSearchBarWhenScrolling = false
     }
@@ -217,6 +253,7 @@ extension MainTableViewController: UITableViewDataSource, UITableViewDelegate {
         } else {
             weather = Storage.shared.cityWeather[indexPath.section]
         }
+        
         cell.configure(weather: weather)
         cell.layer.masksToBounds = true
         return cell
