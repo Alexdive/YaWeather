@@ -116,10 +116,25 @@ class MainTableViewController: UIViewController {
     func getCityWeather(citiesArray: [String], completionHandler: @escaping(Int, Weather) -> Void) {
         
         for (index, city) in citiesArray.enumerated() {
-            if  let coordinate = Storage.shared.cityCoordinate.first(where: { $0.city.lowercased() == city.lowercased() }) {
+            if let coordinate = Storage.shared.cityCoordinate.first(where: { $0.city.lowercased() == city.lowercased() }) {
                 self.networkManager.fetchWeather(latitude: coordinate.lat,
-                                                 longitude: coordinate.lon) { (weather) in
-                    completionHandler(index, weather)
+                                                 longitude: coordinate.lon) { (result) in
+                    switch result {
+                    case .success(let weather):
+                        completionHandler(index, weather)
+                    case .failure(.networkFailure(let error)):
+                        DispatchQueue.main.async {
+                            self.view.show(message: error.localizedDescription)
+                        }
+                    case .failure(.invalidData):
+                        DispatchQueue.main.async {
+                            self.view.show(message: "Wrong data received")
+                        }
+                    case .failure(.invalidModel):
+                        DispatchQueue.main.async {
+                            self.view.show(message: "Wrong data model")
+                        }
+                    }
                 }
             } else {
                 getCoordinateFrom(city: city) { (coordinate, error) in
@@ -128,8 +143,23 @@ class MainTableViewController: UIViewController {
                                                                         lon: coordinate.longitude,
                                                                         lat: coordinate.latitude))
                     self.networkManager.fetchWeather(latitude: coordinate.latitude,
-                                                     longitude: coordinate.longitude) { (weather) in
-                        completionHandler(index, weather)
+                                                     longitude: coordinate.longitude) { (result) in
+                        switch result {
+                        case .success(let weather):
+                            completionHandler(index, weather)
+                        case .failure(.networkFailure(let error)):
+                            DispatchQueue.main.async {
+                                self.view.show(message: error.localizedDescription)
+                            }
+                        case .failure(.invalidData):
+                            DispatchQueue.main.async {
+                                self.view.show(message: "Wrong data received")
+                            }
+                        case .failure(.invalidModel):
+                            DispatchQueue.main.async {
+                                self.view.show(message: "Wrong data model")
+                            }
+                        }
                     }
                 }
             }
@@ -143,9 +173,9 @@ class MainTableViewController: UIViewController {
         let search = MKLocalSearch(request: searchRequest)
         search.start { response, error in
             guard let response = response else { return }
-            let center = CLLocationCoordinate2D(latitude: response.boundingRegion.center.latitude,
+            let coordinate = CLLocationCoordinate2D(latitude: response.boundingRegion.center.latitude,
                                                 longitude: response.boundingRegion.center.longitude)
-            completion(center, error)
+            completion(coordinate, error)
         }
     }
     

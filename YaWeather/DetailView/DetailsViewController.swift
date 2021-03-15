@@ -14,7 +14,7 @@ class DetailsViewController: UIViewController {
     
     var weatherModel: Weather?
     
-    var forecastDay: ForecastModel?
+    var forecastDay: ForecastData?
     
     private lazy var nameCityLabel: UILabel  = {
         let label = UILabel()
@@ -135,6 +135,7 @@ class DetailsViewController: UIViewController {
     private func setupViews() {
         title = "Детальный прогноз"
         view.backgroundColor = .white
+        weatherPic.contentMode = .center
         
         [nameCityLabel, weatherPic, conditionLabel, tempLabel, pressureLabel, windLabel, daysSwitch, hoursCV].forEach { view.addSubview($0) }
         
@@ -148,7 +149,7 @@ class DetailsViewController: UIViewController {
             $0.height.width.equalTo(90)
         }
         conditionLabel.snp.makeConstraints {
-            $0.top.equalTo(weatherPic.snp.bottom).offset(10)
+            $0.top.equalTo(weatherPic.snp.bottom).offset(16)
             $0.centerX.equalToSuperview()
         }
         tempLabel.snp.makeConstraints {

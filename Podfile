@@ -9,5 +9,6 @@ target 'YaWeather' do
 
 	pod 'SnapKit'
 	pod 'SwiftSVG'
+	pod 'Toast-Swift', '~> 5.0.1'
 
 end
