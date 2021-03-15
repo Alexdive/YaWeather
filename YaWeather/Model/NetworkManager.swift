@@ -9,7 +9,7 @@ import Foundation
 
 class NetworkWeatherManager {
     
-    let apiKey = "fdd424ec-48e7-43f1-b2d1-16bd86d44357"
+    let apiKey = "fabf95b9-ac15-4fb0-a5af-126a1b18216f"
     
     func fetchWeather(latitude: Double, longitude: Double, completionHandler: @escaping (Weather) -> Void ) {
         let stringUrl = "https://api.weather.yandex.ru/v2/forecast?lat=\(latitude)&lon=\(longitude)&lang=ru_RU&limit=2&hours=true&extra=false"
@@ -19,6 +19,15 @@ class NetworkWeatherManager {
         request.httpMethod = "GET"
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
 
+            if let error = error as NSError? {
+                print(error.debugDescription)
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                print(httpResponse.allHeaderFields)
+                print(httpResponse.statusCode)
+            }
+            
             guard let data = data else {
                 print(String(describing: error))
                 return

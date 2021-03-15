@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CoreLocation
 
 class Storage {
     private let decoder = JSONDecoder()
