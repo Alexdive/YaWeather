@@ -30,6 +30,7 @@ struct NetworkWeatherManager {
             if let error = error as NSError? {
                 print(error.debugDescription)
                 completionHandler(.failure(.networkFailure(error)))
+                return
             }
             
             if let httpResponse = response as? HTTPURLResponse {

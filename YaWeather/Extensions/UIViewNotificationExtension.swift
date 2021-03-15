@@ -9,7 +9,7 @@ import Foundation
 import Toast_Swift
 
 extension UIView {
-
+    
     func show(message: String,
               timeout: TimeInterval = 5,
               position: ToastPosition = .bottom,
@@ -23,7 +23,7 @@ extension UIView {
         view.layer.cornerRadius = 12
         view.clipsToBounds = true
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-
+        
         let imageView = UIImageView(image: UIImage(systemName: "wifi.exclamationmark"))
         imageView.tintColor = .white
         let isOfflineMessage = attrMessage.string.lowercased().contains(NSLocalizedString("offline",
@@ -31,13 +31,13 @@ extension UIView {
         
         let imageViewLeftSpace: CGFloat = isOfflineMessage ? 20 + 16 : 0
         let bottom: CGFloat = 16
-
+        
         if isOfflineMessage {
             imageView.contentMode = .left
             view.addSubview(imageView)
             imageView.constraintsToSuperview(insets: .init(top: 16, left: 16, bottom: bottom, right: 16))
         }
-
+        
         let label = UILabel()
         label.numberOfLines = 0
         label.attributedText = attrMessage
@@ -46,7 +46,7 @@ extension UIView {
         let textRect = attrMessage.boundingRect(with: size, options: .usesLineFragmentOrigin, context: nil)
         view.bounds.size.height = 16 + ceil(textRect.size.height) + bottom
         label.constraintsToSuperview(insets: .init(top: 16, left: imageViewLeftSpace + 16, bottom: bottom, right: 16))
-
+        
         ToastManager.shared.isQueueEnabled = isQueueEnabled
         showToast(view, duration: timeout, position: position)
     }

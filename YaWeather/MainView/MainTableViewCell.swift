@@ -37,7 +37,7 @@ class MainTableViewCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupView()
-        activityIndicator.startAnimating()
+//        activityIndicator.startAnimating()
     }
     
     required init?(coder: NSCoder) {
@@ -45,9 +45,11 @@ class MainTableViewCell: UITableViewCell {
     }
     
     func configure(weather: Weather) {
-        nameLabel.text = weather.name.capitalized
-        conditionLabel.text = weather.conditionString
-        tempLabel.text = weather.temperatureString + "ºC"
+        DispatchQueue.main.async {
+            self.nameLabel.text = weather.name.capitalized
+            self.conditionLabel.text = weather.conditionString
+            self.tempLabel.text = weather.temperatureString + "ºC"
+        }
     }
     
     private func setupView() {

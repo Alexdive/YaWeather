@@ -10,6 +10,16 @@ import MapKit
 
 class MainTableViewController: UIViewController {
     
+    private lazy var filterCitiesArray: [Weather] = []
+    
+    var viewModel = MainTableViewViewModel()
+    
+    var isOffline = false {
+        didSet {
+            self.title = isOffline ? "YaWeather offline" : "YaWeather"
+        }
+    }
+    
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .grouped)
         tableView.separatorStyle = .none
@@ -28,13 +38,7 @@ class MainTableViewController: UIViewController {
         return refreshControl
     }()
     
-    private lazy var networkManager = NetworkWeatherManager()
-    
     private lazy var activityIndicator = ActivityIndicator.shared
-    
-    private lazy var filterCitiesArray: [Weather] = []
-    
-    var cityNamesArray = ["Москва", "Иркутск", "Владивосток", "Чита", "Новосибирск", "Сочи", "Пенза", "Томск", "Санкт-Петербург", "Тюмень"]
     
     private lazy var searchController = UISearchController(searchResultsController: nil)
     
@@ -51,12 +55,14 @@ class MainTableViewController: UIViewController {
         super.viewDidLoad()
         
         setupViews()
-        setupCities()
+        viewModel.setupCities {
+            getWeather()
+        }
         setupSearchController()
     }
     
     @objc func refresh() {
-        if cityNamesArray.isEmpty {
+        if viewModel.cityNamesArray.isEmpty {
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating(navigationItem: self.navigationItem)
                 self.refreshControl.endRefreshing()
@@ -67,43 +73,12 @@ class MainTableViewController: UIViewController {
         }
     }
     
-    private func setupCities() {
-//        first launch of an app or when all cities have been deleted before exit
-        if Storage.shared.cityWeather.isEmpty {
-            Storage.shared.cityWeather = Array(repeating: Weather(), count: cityNamesArray.count)
-            for (index, city) in cityNamesArray.enumerated() {
-                Storage.shared.cityWeather[index].name = cityNamesArray[index].lowercased()
-                getCoordinateFrom(city: city, completion: { (coordinate, error) in
-                    guard let coordinate = coordinate, error == nil else { return }
-                    Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(),
-                                                                        lon: coordinate.longitude,
-                                                                        lat: coordinate.latitude))
-                })
-            }
-            getWeather()
-        } else {
-            cityNamesArray.removeAll()
-            Storage.shared.cityWeather.forEach { cityNamesArray.append($0.name.lowercased()) }
-            if Storage.shared.cityCoordinate.isEmpty {
-                for city in cityNamesArray {
-                    getCoordinateFrom(city: city, completion: { (coordinate, error) in
-                        guard let coordinate = coordinate, error == nil else { return }
-                        Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(),
-                                                                            lon: coordinate.longitude,
-                                                                            lat: coordinate.latitude))
-                    })
-                }
-            }
-            getWeather()
-        }
-    }
-    
     func getWeather() {
         activityIndicator.animateActivity(title: "Загрузка...", view: self.view, navigationItem: navigationItem)
-        getCityWeather(citiesArray: cityNamesArray) { (index, weather) in
+        viewModel.getCityWeather(citiesArray: viewModel.cityNamesArray) { (index, weather) in
             
             Storage.shared.cityWeather[index] = weather
-            Storage.shared.cityWeather[index].name = self.cityNamesArray[index].lowercased()
+            Storage.shared.cityWeather[index].name = self.viewModel.cityNamesArray[index].lowercased()
             
             DispatchQueue.main.async {
                 self.tableView.reloadData()
@@ -111,79 +86,31 @@ class MainTableViewController: UIViewController {
                 self.refreshControl.endRefreshing()
             }
         }
-    }
-    
-    func getCityWeather(citiesArray: [String], completionHandler: @escaping(Int, Weather) -> Void) {
-        
-        for (index, city) in citiesArray.enumerated() {
-            if let coordinate = Storage.shared.cityCoordinate.first(where: { $0.city.lowercased() == city.lowercased() }) {
-                self.networkManager.fetchWeather(latitude: coordinate.lat,
-                                                 longitude: coordinate.lon) { (result) in
-                    switch result {
-                    case .success(let weather):
-                        completionHandler(index, weather)
-                    case .failure(.networkFailure(let error)):
-                        DispatchQueue.main.async {
-                            self.view.show(message: error.localizedDescription)
+        DispatchQueue.main.async {
+            self.viewModel.errorMessage.bind { [unowned self] in
+                if let message = $0 {
+                    DispatchQueue.main.async {
+                        self.view.show(message: message)
+                        if message.contains(NSLocalizedString("offline",
+                                                              comment: "").lowercased()) {
+                            self.isOffline = true
                         }
-                    case .failure(.invalidData):
-                        DispatchQueue.main.async {
-                            self.view.show(message: "Wrong data received")
-                        }
-                    case .failure(.invalidModel):
-                        DispatchQueue.main.async {
-                            self.view.show(message: "Wrong data model")
-                        }
+                        self.activityIndicator.stopAnimating(navigationItem: self.navigationItem)
+                        self.refreshControl.endRefreshing()
                     }
-                }
-            } else {
-                getCoordinateFrom(city: city) { (coordinate, error) in
-                    guard let coordinate = coordinate, error == nil else { return }
-                    Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(),
-                                                                        lon: coordinate.longitude,
-                                                                        lat: coordinate.latitude))
-                    self.networkManager.fetchWeather(latitude: coordinate.latitude,
-                                                     longitude: coordinate.longitude) { (result) in
-                        switch result {
-                        case .success(let weather):
-                            completionHandler(index, weather)
-                        case .failure(.networkFailure(let error)):
-                            DispatchQueue.main.async {
-                                self.view.show(message: error.localizedDescription)
-                            }
-                        case .failure(.invalidData):
-                            DispatchQueue.main.async {
-                                self.view.show(message: "Wrong data received")
-                            }
-                        case .failure(.invalidModel):
-                            DispatchQueue.main.async {
-                                self.view.show(message: "Wrong data model")
-                            }
-                        }
-                    }
+                } else {
+                    self.isOffline = false
                 }
             }
         }
-    }
-    
-    func getCoordinateFrom(city: String, completion: @escaping(_ coordinate: CLLocationCoordinate2D?,
-                                                               _ error: Error?) -> () ) {
-        let searchRequest = MKLocalSearch.Request()
-        searchRequest.naturalLanguageQuery = city
-        let search = MKLocalSearch(request: searchRequest)
-        search.start { response, error in
-            guard let response = response else { return }
-            let coordinate = CLLocationCoordinate2D(latitude: response.boundingRegion.center.latitude,
-                                                longitude: response.boundingRegion.center.longitude)
-            completion(coordinate, error)
-        }
+        self.viewModel.errorMessage = Box(nil)
     }
     
     @objc func pressPlusButton() {
         alertAddCity(name: "Добавить город", placeholder: "Введите название города") { (city) in
-            self.getCoordinateFrom(city: city) { (coordinate, error) in
+            self.viewModel.getCoordinateFrom(city: city) { (coordinate, error) in
                 if let coordinate = coordinate, error == nil {
-                    self.cityNamesArray.append(city.lowercased())
+                    self.viewModel.cityNamesArray.append(city.lowercased())
                     Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(),
                                                                         lon: coordinate.longitude,
                                                                         lat: coordinate.latitude))
@@ -191,20 +118,28 @@ class MainTableViewController: UIViewController {
                     newCity.name = city
                     Storage.shared.cityWeather.append(newCity)
                     self.getWeather()
-                }
-                else {
-                    let alertController = UIAlertController(title: "Город не найден",
-                                                            message: nil,
-                                                            preferredStyle: .alert)
-                    let alertOk = UIAlertAction(title: "Попробовать еще раз", style: .default) { (action) in
-                        self.pressPlusButton()
+                } else {
+                    if let error = error {
+                        if error.localizedDescription.contains(NSLocalizedString("offline",
+                                                                                 comment: "").lowercased()) {
+                            DispatchQueue.main.async {
+                                self.view.show(message: error.localizedDescription)
+                            }
+                        } else {
+                            let alertController = UIAlertController(title: "Город не найден",
+                                                                    message: nil,
+                                                                    preferredStyle: .alert)
+                            let alertOk = UIAlertAction(title: "Попробовать еще раз", style: .default) { (action) in
+                                self.pressPlusButton()
+                            }
+                            let alertCancel = UIAlertAction(title: "Отмена", style: .default, handler: nil)
+                            
+                            alertController.addAction(alertOk)
+                            alertController.addAction(alertCancel)
+                            
+                            self.present(alertController, animated: true, completion: nil)
+                        }
                     }
-                    let alertCancel = UIAlertAction(title: "Отмена", style: .default, handler: nil)
-                    
-                    alertController.addAction(alertOk)
-                    alertController.addAction(alertCancel)
-                    
-                    self.present(alertController, animated: true, completion: nil)
                 }
             }
         }
@@ -303,8 +238,8 @@ extension MainTableViewController: UITableViewDataSource, UITableViewDelegate {
                 if let index = Storage.shared.cityWeather.firstIndex(where: { $0.name.lowercased() == editingRow.name.lowercased() }){
                     Storage.shared.cityWeather.remove(at: index)
                 }
-                if let index = self.cityNamesArray.firstIndex(where: { $0.lowercased() == editingRow.name.lowercased() }){
-                    self.cityNamesArray.remove(at: index)
+                if let index = self.viewModel.cityNamesArray.firstIndex(where: { $0.lowercased() == editingRow.name.lowercased() }){
+                    self.viewModel.cityNamesArray.remove(at: index)
                 }
             }
             tableView.reloadData()
