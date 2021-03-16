@@ -27,8 +27,23 @@
 		5B4240FB310F410C295E9123 /* Pods_YaWeather.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F4ACFE6ED67D7A275884748 /* Pods_YaWeather.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		507336A626005029006E81BE /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		352C7593D13EDB65BAE13997 /* Pods-YaWeather.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YaWeather.release.xcconfig"; path = "Target Support Files/Pods-YaWeather/Pods-YaWeather.release.xcconfig"; sourceTree = "<group>"; };
+		5073369626005026006E81BE /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		5073369826005026006E81BE /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		509DD9D325D14F0F00D7C743 /* YaWeather.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YaWeather.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		509DD9D625D14F0F00D7C743 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		509DD9D825D14F0F00D7C743 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -143,6 +158,8 @@
 			isa = PBXGroup;
 			children = (
 				8F4ACFE6ED67D7A275884748 /* Pods_YaWeather.framework */,
+				5073369626005026006E81BE /* WidgetKit.framework */,
+				5073369826005026006E81BE /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -168,6 +185,7 @@
 				509DD9D025D14F0F00D7C743 /* Frameworks */,
 				509DD9D125D14F0F00D7C743 /* Resources */,
 				10C4E80DEBEEC73A70F43A42 /* [CP] Embed Pods Frameworks */,
+				507336A626005029006E81BE /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
@@ -433,7 +451,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.alextddc.YaWeather;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -453,7 +471,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.alextddc.YaWeather;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
