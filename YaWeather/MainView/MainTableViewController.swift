@@ -71,34 +71,39 @@ class MainTableViewController: UIViewController {
         }
     }
     
+    
+    
     func getWeather() {
         activityIndicator.animateActivity(title: "Загрузка...", view: self.view, navigationItem: navigationItem)
         viewModel.getCityWeather(citiesArray: viewModel.cityNamesArray) { [weak self] (index, result) in
             guard let self = self else { return }
             DispatchQueue.main.async {
-                switch result {
-                case .success(let weather):
-                    if self.isOffline {
-                        self.isOffline = false
-                        self.view.show(message: "Connection has been restored", backgroundColor: .systemGreen)
-                    }
-                    Storage.shared.cityWeather[index] = weather
-                    Storage.shared.cityWeather[index].name = self.viewModel.cityNamesArray[index].lowercased()
-                    
-                case .failure(.networkFailure(let error)):
-                    self.isOffline = true
-                    self.view.show(message: error.localizedDescription)
-                case .failure(.invalidData):
-                    self.view.show(message: "Wrong data received")
-                case .failure(.invalidModel):
-                    self.view.show(message: "Wrong data received")
-                }
-                
-                self.tableView.reloadData()
-                self.activityIndicator.stopAnimating(navigationItem: self.navigationItem)
-                self.refreshControl.endRefreshing()
+                self.updateUI(result: result, index: index)
             }
         }
+    }
+    
+    private func updateUI(result: Result<Weather, ApiError>, index: Int) {
+        switch result {
+        case .success(let weather):
+            if isOffline {
+                isOffline = false
+                view.show(message: "Connection has been restored", backgroundColor: .systemGreen)
+            }
+            Storage.shared.cityWeather[index] = weather
+            Storage.shared.cityWeather[index].name = self.viewModel.cityNamesArray[index].lowercased()
+            
+        case .failure(.networkFailure(let error)):
+            isOffline = true
+            view.show(message: error.localizedDescription)
+        case .failure(.invalidData):
+            view.show(message: "Wrong data received")
+        case .failure(.invalidModel):
+            view.show(message: "Wrong data received")
+        }
+        tableView.reloadData()
+        activityIndicator.stopAnimating(navigationItem: self.navigationItem)
+        refreshControl.endRefreshing()
     }
     
     @objc func pressPlusButton() {
