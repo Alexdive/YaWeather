@@ -12,7 +12,7 @@ class MainTableViewViewModel {
     
     private lazy var networkManager = NetworkWeatherManager()
     
-    var cityNamesArray = ["Москва", "Иркутск", "Владивосток", "Чита", "Новосибирск", "Сочи", "Пенза", "Томск", "Санкт-Петербург", "Тюмень"]
+    var cityNamesArray = ["Москва", "Санкт-Петербург", "Иркутск", "Владивосток", "Новосибирск", "Сочи", "Пенза", "Томск", "Челябинск", "Тюмень"]
     
     var errorMessage: Box<String?> = Box(nil)
     
@@ -52,7 +52,8 @@ class MainTableViewViewModel {
         for (index, city) in citiesArray.enumerated() {
             if let coordinate = Storage.shared.cityCoordinate.first(where: { $0.city.lowercased() == city.lowercased() }) {
                 self.networkManager.fetchWeather(latitude: coordinate.lat,
-                                                 longitude: coordinate.lon) { (result) in
+                                                 longitude: coordinate.lon) { [weak self] result in
+                    guard let self = self else { return }
                     switch result {
                     case .success(let weather):
                         completionHandler(index, weather)
@@ -71,7 +72,8 @@ class MainTableViewViewModel {
                                                                         lon: coordinate.longitude,
                                                                         lat: coordinate.latitude))
                     self.networkManager.fetchWeather(latitude: coordinate.latitude,
-                                                     longitude: coordinate.longitude) { (result) in
+                                                     longitude: coordinate.longitude) { [weak self] result in
+                        guard let self = self else { return }
                         switch result {
                         case .success(let weather):
                             completionHandler(index, weather)

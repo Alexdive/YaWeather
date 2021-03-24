@@ -58,6 +58,7 @@ class MainTableViewCell: UITableViewCell {
         
         backgroundColor = .clear
         selectedBackgroundView?.layer.cornerRadius = 12
+        contentView.layer.masksToBounds = true
         
         backView.backgroundColor = .systemTeal
         backView.layer.cornerRadius = 12

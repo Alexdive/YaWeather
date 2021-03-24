@@ -105,7 +105,7 @@
 				509DDA1225D38C9700D7C743 /* MainView */,
 				509DDA1425D38CA700D7C743 /* DetailView */,
 				509DD9F125D1648400D7C743 /* Model */,
-				50D58B0325FF16CA00BB8FB2 /* Extensions */,
+				50D58B0325FF16CA00BB8FB2 /* Helpers */,
 				509DD9D825D14F0F00D7C743 /* SceneDelegate.swift */,
 				509DD9D625D14F0F00D7C743 /* AppDelegate.swift */,
 				509DD9E125D14F1200D7C743 /* LaunchScreen.storyboard */,
@@ -143,7 +143,7 @@
 			path = DetailView;
 			sourceTree = "<group>";
 		};
-		50D58B0325FF16CA00BB8FB2 /* Extensions */ = {
+		50D58B0325FF16CA00BB8FB2 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
 				509DDA0525D22FFB00D7C743 /* UILabel+AppStyle.swift */,
@@ -151,7 +151,7 @@
 				50D58B0025FF090F00BB8FB2 /* UIView+Extension.swift */,
 				50D58B0B25FF50BB00BB8FB2 /* Box.swift */,
 			);
-			path = Extensions;
+			path = Helpers;
 			sourceTree = "<group>";
 		};
 		7B57FD3B2204B7E0E90EF9D2 /* Frameworks */ = {

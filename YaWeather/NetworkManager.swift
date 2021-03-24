@@ -22,7 +22,7 @@ struct NetworkWeatherManager {
         guard let url = URL(string: stringUrl) else {
             preconditionFailure("Check if URL is valid!")
         }
-        var request = URLRequest(url: url, timeoutInterval: Double.infinity)
+        var request = URLRequest(url: url, timeoutInterval: 5)
         request.addValue(apiKey, forHTTPHeaderField: "X-Yandex-API-Key")
         request.httpMethod = "GET"
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
@@ -51,7 +51,7 @@ struct NetworkWeatherManager {
         task.resume()
     }
     
-    func parseJSON(withData data: Data) throws -> Weather? {
+    func parseJSON(withData data: Data) throws -> Weather {
         let decoder = JSONDecoder()
         do {
             let weatherData = try decoder.decode(WeatherData.self, from: data)

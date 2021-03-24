@@ -63,11 +63,9 @@ class MainTableViewController: UIViewController {
     
     @objc func refresh() {
         if viewModel.cityNamesArray.isEmpty {
-            DispatchQueue.main.async {
-                self.activityIndicator.stopAnimating(navigationItem: self.navigationItem)
-                self.refreshControl.endRefreshing()
-                self.pressPlusButton()
-            }
+            activityIndicator.stopAnimating(navigationItem: self.navigationItem)
+            refreshControl.endRefreshing()
+            pressPlusButton()
         } else {
             getWeather()
         }
@@ -75,8 +73,8 @@ class MainTableViewController: UIViewController {
     
     func getWeather() {
         activityIndicator.animateActivity(title: "Загрузка...", view: self.view, navigationItem: navigationItem)
-        viewModel.getCityWeather(citiesArray: viewModel.cityNamesArray) { (index, weather) in
-            
+        viewModel.getCityWeather(citiesArray: viewModel.cityNamesArray) { [weak self] (index, weather) in
+            guard let self = self else { return }
             Storage.shared.cityWeather[index] = weather
             Storage.shared.cityWeather[index].name = self.viewModel.cityNamesArray[index].lowercased()
             
@@ -99,7 +97,11 @@ class MainTableViewController: UIViewController {
                         self.refreshControl.endRefreshing()
                     }
                 } else {
-                    self.isOffline = false
+                    if self.isOffline {
+                        self.isOffline = false
+                        self.view.show(message: "Connection has been restored", backgroundColor: .systemGreen)
+                        
+                    }
                 }
             }
         }
@@ -107,8 +109,9 @@ class MainTableViewController: UIViewController {
     }
     
     @objc func pressPlusButton() {
-        alertAddCity(name: "Добавить город", placeholder: "Введите название города") { (city) in
-            self.viewModel.getCoordinateFrom(city: city) { (coordinate, error) in
+        alertAddCity(name: "Добавить город", placeholder: "Введите название города") { city in
+            self.viewModel.getCoordinateFrom(city: city) { [weak self] (coordinate, error) in
+                guard let self = self else { return }
                 if let coordinate = coordinate, error == nil {
                     self.viewModel.cityNamesArray.append(city.lowercased())
                     Storage.shared.cityCoordinate.append(CityCoordinate(city: city.lowercased(),
@@ -129,7 +132,7 @@ class MainTableViewController: UIViewController {
                             let alertController = UIAlertController(title: "Город не найден",
                                                                     message: nil,
                                                                     preferredStyle: .alert)
-                            let alertOk = UIAlertAction(title: "Попробовать еще раз", style: .default) { (action) in
+                            let alertOk = UIAlertAction(title: "Попробовать еще раз", style: .default) { action in
                                 self.pressPlusButton()
                             }
                             let alertCancel = UIAlertAction(title: "Отмена", style: .default, handler: nil)
@@ -162,7 +165,7 @@ class MainTableViewController: UIViewController {
     }
     
     private func configureNavBar() {
-
+        
         let largeConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular, scale: .medium)
         let btnPlus = UIButton(type: .custom)
         btnPlus.setBackgroundImage(UIImage(systemName: "plus.circle.fill", withConfiguration: largeConfig), for: .normal)
@@ -175,13 +178,13 @@ class MainTableViewController: UIViewController {
         btnSearch.tintColor = .systemTeal
         
         let stackview = UIStackView(arrangedSubviews: [btnSearch, btnPlus])
-         stackview.distribution = .fillEqually
-         stackview.axis = .horizontal
-         stackview.alignment = .center
-         stackview.spacing = 12
-
-         let rightBarButton = UIBarButtonItem(customView: stackview)
-         self.navigationItem.rightBarButtonItem = rightBarButton
+        stackview.distribution = .fillEqually
+        stackview.axis = .horizontal
+        stackview.alignment = .center
+        stackview.spacing = 12
+        
+        let rightBarButton = UIBarButtonItem(customView: stackview)
+        self.navigationItem.rightBarButtonItem = rightBarButton
     }
     
     @objc func searchTap() {
@@ -191,7 +194,7 @@ class MainTableViewController: UIViewController {
     private func presentSearchBar() {
         if navigationItem.searchController == nil {
             navigationItem.searchController = searchController
-
+            
         } else {
             navigationItem.searchController = nil
         }
@@ -246,16 +249,8 @@ extension MainTableViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: MainTableViewCell.id, for: indexPath) as? MainTableViewCell else { return UITableViewCell() }
         
-        var weather = Weather()
+        cell.configure(weather: isFiltering ? filterCitiesArray[indexPath.section] : Storage.shared.cityWeather[indexPath.section])
         
-        if isFiltering {
-            weather = filterCitiesArray[indexPath.section]
-        } else {
-            weather = Storage.shared.cityWeather[indexPath.section]
-        }
-        
-        cell.configure(weather: weather)
-        cell.layer.masksToBounds = true
         return cell
     }
     
