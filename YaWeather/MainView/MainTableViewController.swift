@@ -20,12 +20,17 @@ class MainTableViewController: UIViewController {
         }
     }
     
+    var swapIndex: Int?
+    
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .grouped)
         tableView.separatorStyle = .none
         tableView.backgroundColor = .clear
         tableView.dataSource = self
         tableView.delegate = self
+        tableView.dragDelegate = self
+        tableView.dropDelegate = self
+        tableView.dragInteractionEnabled = true
         tableView.showsVerticalScrollIndicator = false
         tableView.register(MainTableViewCell.self, forCellReuseIdentifier: MainTableViewCell.id)
         return tableView
@@ -164,14 +169,21 @@ class MainTableViewController: UIViewController {
     
     private func configureNavBar() {
         
-        let largeConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular, scale: .medium)
+        let largeConfig = UIImage.SymbolConfiguration(pointSize: 24,
+                                                      weight: .regular,
+                                                      scale: .medium)
         let btnPlus = UIButton(type: .custom)
-        btnPlus.setBackgroundImage(UIImage(systemName: "plus.circle.fill", withConfiguration: largeConfig), for: .normal)
-        btnPlus.addTarget(self, action: #selector(pressPlusButton), for: .touchUpInside)
+        btnPlus.setBackgroundImage(UIImage(systemName: "plus.circle.fill",
+                                           withConfiguration: largeConfig),
+                                   for: .normal)
+        btnPlus.addTarget(self, action: #selector(pressPlusButton),
+                          for: .touchUpInside)
         btnPlus.tintColor = .systemTeal
         
         let btnSearch = UIButton(type: .custom)
-        btnSearch.setBackgroundImage(UIImage(systemName: "magnifyingglass.circle.fill", withConfiguration: largeConfig), for: .normal)
+        btnSearch.setBackgroundImage(UIImage(systemName: "magnifyingglass.circle.fill",
+                                             withConfiguration: largeConfig),
+                                     for: .normal)
         btnSearch.addTarget(self, action: #selector(searchTap), for: .touchUpInside)
         btnSearch.tintColor = .systemTeal
         
@@ -229,34 +241,43 @@ extension MainTableViewController: UISearchResultsUpdating {
 
 // MARK: - Table view data source
 extension MainTableViewController: UITableViewDataSource, UITableViewDelegate {
+   
+    func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        Storage.shared.cityWeather.swapAt(sourceIndexPath.row, destinationIndexPath.row)
+        viewModel.cityNamesArray.swapAt(sourceIndexPath.row, destinationIndexPath.row)
+    }
+    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 60
+        return 76
     }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
-        if isFiltering {
-            return filterCitiesArray.count
-        }
-        return Storage.shared.cityWeather.count
-    }
-    
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+
+            return isFiltering ? filterCitiesArray.count : Storage.shared.cityWeather.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: MainTableViewCell.id, for: indexPath) as? MainTableViewCell else { return UITableViewCell() }
         
-        cell.configure(weather: isFiltering ? filterCitiesArray[indexPath.section] : Storage.shared.cityWeather[indexPath.section])
+        cell.configure(weather: isFiltering ? filterCitiesArray[indexPath.row] : Storage.shared.cityWeather[indexPath.row])
+        
+        cell.selectionStyle = .none
         
         return cell
     }
     
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
+            return .none
+    }
+    
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let deleteAction = UIContextualAction(style: .destructive,
-                                              title: "Удалить") { (_, _, completionHandler) in
+                                              title: nil) { (_, _, completionHandler) in
             if self.isFiltering {
-                let editingRow = self.filterCitiesArray[indexPath.section]
+                let editingRow = self.filterCitiesArray[indexPath.row]
                 if let index = self.filterCitiesArray.firstIndex(where: { $0.name.lowercased() == editingRow.name.lowercased() }){
                     self.filterCitiesArray.remove(at: index)
                 }
@@ -264,7 +285,7 @@ extension MainTableViewController: UITableViewDataSource, UITableViewDelegate {
                     Storage.shared.cityWeather.remove(at: index)
                 }
             } else {
-                let editingRow = Storage.shared.cityWeather[indexPath.section]
+                let editingRow = Storage.shared.cityWeather[indexPath.row]
                 if let index = Storage.shared.cityWeather.firstIndex(where: { $0.name.lowercased() == editingRow.name.lowercased() }){
                     Storage.shared.cityWeather.remove(at: index)
                 }
@@ -274,17 +295,20 @@ extension MainTableViewController: UITableViewDataSource, UITableViewDelegate {
             }
             tableView.reloadData()
         }
+        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 22,
+                                                      weight: .regular,
+                                                      scale: .medium)
+        deleteAction.image = UIImage(systemName: "trash", withConfiguration: symbolConfig)?.tint(with: .red)
+        deleteAction.backgroundColor = .white
+      
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let headerView = UIView()
-        headerView.backgroundColor = .clear
-        return headerView
+        return nil
     }
-    
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 10
+        return 6
     }
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
         return nil
@@ -295,12 +319,13 @@ extension MainTableViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let vc = DetailsViewController()
         if isFiltering {
-            vc.weatherModel = filterCitiesArray[indexPath.section]
+            vc.weatherModel = filterCitiesArray[indexPath.row]
         } else {
-            vc.weatherModel = Storage.shared.cityWeather[indexPath.section]
+            vc.weatherModel = Storage.shared.cityWeather[indexPath.row]
         }
         navigationController?.pushViewController(vc, animated: true)
     }
+
 }
 
 extension MainTableViewController {
@@ -325,3 +350,57 @@ extension MainTableViewController {
         present(alertController, animated: true, completion: nil)
     }
 }
+
+extension MainTableViewController: UITableViewDragDelegate, UITableViewDropDelegate {
+    
+    func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        let dragItem = UIDragItem(itemProvider: NSItemProvider())
+        dragItem.localObject = Storage.shared.cityWeather[indexPath.row]
+        swapIndex = indexPath.row
+        return [ dragItem ]
+    }
+    
+    func tableView(_ tableView: UITableView, canHandle session: UIDropSession) -> Bool {
+        return true
+    }
+    
+    func tableView(_ tableView: UITableView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UITableViewDropProposal {
+        var dropProposal = UITableViewDropProposal(operation: .cancel)
+        
+        guard session.items.count == 1 else { return dropProposal }
+        
+        if tableView.hasActiveDrag {
+            dropProposal = UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
+        }
+        return dropProposal
+    }
+    
+    func tableView(_ tableView: UITableView, performDropWith coordinator: UITableViewDropCoordinator) {
+        let destinationIndexPath: IndexPath
+        
+        if let indexPath = coordinator.destinationIndexPath {
+            destinationIndexPath = indexPath
+        } else {
+            let section = tableView.numberOfSections - 1
+            let row = tableView.numberOfRows(inSection: section)
+            destinationIndexPath = IndexPath(row: row, section: section)
+        }
+        
+        if let index = swapIndex {
+            viewModel.cityNamesArray.swapAt(index, destinationIndexPath.row)
+        }
+        
+        _ = coordinator.session.loadObjects(ofClass: Weather.self) { items in
+   
+            var indexPaths = [IndexPath]()
+            for (index, item) in items.enumerated() {
+                let indexPath = IndexPath(row: destinationIndexPath.row + index, section: destinationIndexPath.section)
+                Storage.shared.cityWeather.insert(item, at: indexPath.row)
+                indexPaths.append(indexPath)
+            }
+
+            tableView.insertRows(at: indexPaths, with: .automatic)
+        }
+    }
+}
+

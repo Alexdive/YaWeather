@@ -104,3 +104,31 @@ struct CityCoordinate: Codable {
     let lon: Double
     let lat: Double
 }
+
+extension Weather: _ObjectiveCBridgeable {
+    static func _unconditionallyBridgeFromObjectiveC(_ source: NSString?) -> Weather {
+        self.init(fromObjectiveC: source ?? "")
+    }
+    
+    init(fromObjectiveC source: _ObjectiveCType) {
+        self.name = source as String
+    }
+    
+    func _bridgeToObjectiveC() -> NSString {
+        return NSString(string: self.name)
+    }
+    
+    static func _forceBridgeFromObjectiveC(_ source: NSString, result: inout Weather?) {
+        result = Weather(fromObjectiveC: source)
+    }
+    
+    static func _conditionallyBridgeFromObjectiveC(_ source: NSString, result: inout Weather?) -> Bool {
+        _forceBridgeFromObjectiveC(source, result: &result)
+        return true
+    }
+    
+    
+    typealias _ObjectiveCType = NSString
+    
+    
+}

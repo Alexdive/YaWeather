@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		509201A8260B8A2500B1BF1A /* UIImage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509201A7260B8A2400B1BF1A /* UIImage+Extension.swift */; };
 		509DD9D725D14F0F00D7C743 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509DD9D625D14F0F00D7C743 /* AppDelegate.swift */; };
 		509DD9D925D14F0F00D7C743 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509DD9D825D14F0F00D7C743 /* SceneDelegate.swift */; };
 		509DD9DB25D14F0F00D7C743 /* MainTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509DD9DA25D14F0F00D7C743 /* MainTableViewController.swift */; };
@@ -43,6 +44,7 @@
 		352C7593D13EDB65BAE13997 /* Pods-YaWeather.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YaWeather.release.xcconfig"; path = "Target Support Files/Pods-YaWeather/Pods-YaWeather.release.xcconfig"; sourceTree = "<group>"; };
 		5073369626005026006E81BE /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		5073369826005026006E81BE /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		509201A7260B8A2400B1BF1A /* UIImage+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Extension.swift"; sourceTree = "<group>"; };
 		509DD9D325D14F0F00D7C743 /* YaWeather.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YaWeather.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		509DD9D625D14F0F00D7C743 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		509DD9D825D14F0F00D7C743 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -147,6 +149,7 @@
 				509DDA0525D22FFB00D7C743 /* UILabel+AppStyle.swift */,
 				50D58AFD25FF046C00BB8FB2 /* UIViewNotificationExtension.swift */,
 				50D58B0025FF090F00BB8FB2 /* UIView+Extension.swift */,
+				509201A7260B8A2400B1BF1A /* UIImage+Extension.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -296,6 +299,7 @@
 				50D58B0925FF465400BB8FB2 /* MainTableViewViewModel.swift in Sources */,
 				509DD9EF25D1502E00D7C743 /* WeatherModel.swift in Sources */,
 				509DD9D925D14F0F00D7C743 /* SceneDelegate.swift in Sources */,
+				509201A8260B8A2500B1BF1A /* UIImage+Extension.swift in Sources */,
 				509DD9F425D164C900D7C743 /* Storage.swift in Sources */,
 				50D58AFE25FF046C00BB8FB2 /* UIViewNotificationExtension.swift in Sources */,
 			);

@@ -14,13 +14,13 @@ class MainTableViewCell: UITableViewCell {
     
     private lazy var backView = UIView()
     
-    private lazy var nameLabel: UILabel = {
+    lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.labelSettings(textAlignment: .left, font: UIFont.systemFont(ofSize: 18, weight: .regular), textColor: .black, numberOfLines: 1, text: "")
         return label
     }()
     
-    private lazy var conditionLabel: UILabel = {
+    lazy var conditionLabel: UILabel = {
         let label = UILabel()
         label.labelSettings(textAlignment: .right, font: UIFont.systemFont(ofSize: 16, weight: .light), textColor: .black, numberOfLines: 2, text: "")
         return label
@@ -67,7 +67,8 @@ class MainTableViewCell: UITableViewCell {
         backView.layer.masksToBounds = true
        
         backView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.left.right.equalToSuperview()
+            $0.top.bottom.equalToSuperview().inset(6)
         }
         nameLabel.snp.makeConstraints {
             $0.centerY.equalToSuperview()
