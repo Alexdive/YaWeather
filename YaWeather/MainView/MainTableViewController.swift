@@ -73,39 +73,32 @@ class MainTableViewController: UIViewController {
     
     func getWeather() {
         activityIndicator.animateActivity(title: "Загрузка...", view: self.view, navigationItem: navigationItem)
-        viewModel.getCityWeather(citiesArray: viewModel.cityNamesArray) { [weak self] (index, weather) in
+        viewModel.getCityWeather(citiesArray: viewModel.cityNamesArray) { [weak self] (index, result) in
             guard let self = self else { return }
-            Storage.shared.cityWeather[index] = weather
-            Storage.shared.cityWeather[index].name = self.viewModel.cityNamesArray[index].lowercased()
-            
             DispatchQueue.main.async {
+                switch result {
+                case .success(let weather):
+                    if self.isOffline {
+                        self.isOffline = false
+                        self.view.show(message: "Connection has been restored", backgroundColor: .systemGreen)
+                    }
+                    Storage.shared.cityWeather[index] = weather
+                    Storage.shared.cityWeather[index].name = self.viewModel.cityNamesArray[index].lowercased()
+                    
+                case .failure(.networkFailure(let error)):
+                    self.isOffline = true
+                    self.view.show(message: error.localizedDescription)
+                case .failure(.invalidData):
+                    self.view.show(message: "Wrong data received")
+                case .failure(.invalidModel):
+                    self.view.show(message: "Wrong data received")
+                }
+                
                 self.tableView.reloadData()
                 self.activityIndicator.stopAnimating(navigationItem: self.navigationItem)
                 self.refreshControl.endRefreshing()
             }
         }
-        DispatchQueue.main.async {
-            self.viewModel.errorMessage.bind { [unowned self] in
-                if let message = $0 {
-                    DispatchQueue.main.async {
-                        self.view.show(message: message)
-                        if message.contains(NSLocalizedString("offline",
-                                                              comment: "").lowercased()) {
-                            self.isOffline = true
-                        }
-                        self.activityIndicator.stopAnimating(navigationItem: self.navigationItem)
-                        self.refreshControl.endRefreshing()
-                    }
-                } else {
-                    if self.isOffline {
-                        self.isOffline = false
-                        self.view.show(message: "Connection has been restored", backgroundColor: .systemGreen)
-                        
-                    }
-                }
-            }
-        }
-        self.viewModel.errorMessage = Box(nil)
     }
     
     @objc func pressPlusButton() {
@@ -151,7 +144,7 @@ class MainTableViewController: UIViewController {
     private func setupViews() {
         title = "YaWeather"
         view.backgroundColor = .white
-
+        
         configureNavBar()
         view.addSubview(tableView)
         tableView.addSubview(refreshControl)

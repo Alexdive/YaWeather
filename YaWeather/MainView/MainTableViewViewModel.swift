@@ -14,8 +14,6 @@ class MainTableViewViewModel {
     
     var cityNamesArray = ["Москва", "Санкт-Петербург", "Иркутск", "Владивосток", "Новосибирск", "Сочи", "Пенза", "Томск", "Челябинск", "Тюмень"]
     
-    var errorMessage: Box<String?> = Box(nil)
-    
     func setupCities(completion: () -> Void) {
 //        first launch of an app or when all cities have been deleted before exit
         if Storage.shared.cityWeather.isEmpty {
@@ -47,23 +45,13 @@ class MainTableViewViewModel {
         }
     }
     
-    func getCityWeather(citiesArray: [String], completionHandler: @escaping(Int, Weather) -> Void) {
+    func getCityWeather(citiesArray: [String], completionHandler: @escaping(Int, Result<Weather, ApiError>) -> Void) {
         
         for (index, city) in citiesArray.enumerated() {
             if let coordinate = Storage.shared.cityCoordinate.first(where: { $0.city.lowercased() == city.lowercased() }) {
                 self.networkManager.fetchWeather(latitude: coordinate.lat,
-                                                 longitude: coordinate.lon) { [weak self] result in
-                    guard let self = self else { return }
-                    switch result {
-                    case .success(let weather):
-                        completionHandler(index, weather)
-                    case .failure(.networkFailure(let error)):
-                        self.errorMessage.value = error.localizedDescription
-                    case .failure(.invalidData):
-                        self.errorMessage.value = "Wrong data received"
-                    case .failure(.invalidModel):
-                        self.errorMessage.value = "Wrong data model"
-                    }
+                                                 longitude: coordinate.lon) { result in
+                    completionHandler(index, result)
                 }
             } else {
                 getCoordinateFrom(city: city) { (coordinate, error) in
@@ -72,18 +60,8 @@ class MainTableViewViewModel {
                                                                         lon: coordinate.longitude,
                                                                         lat: coordinate.latitude))
                     self.networkManager.fetchWeather(latitude: coordinate.latitude,
-                                                     longitude: coordinate.longitude) { [weak self] result in
-                        guard let self = self else { return }
-                        switch result {
-                        case .success(let weather):
-                            completionHandler(index, weather)
-                        case .failure(.networkFailure(let error)):
-                            self.errorMessage.value = error.localizedDescription
-                        case .failure(.invalidData):
-                            self.errorMessage.value = "Wrong data received"
-                        case .failure(.invalidModel):
-                            self.errorMessage.value = "Wrong data model"
-                        }
+                                                     longitude: coordinate.longitude) { result in
+                        completionHandler(index, result)
                     }
                 }
             }

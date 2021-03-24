@@ -23,7 +23,6 @@
 		50D58AFE25FF046C00BB8FB2 /* UIViewNotificationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D58AFD25FF046C00BB8FB2 /* UIViewNotificationExtension.swift */; };
 		50D58B0125FF090F00BB8FB2 /* UIView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D58B0025FF090F00BB8FB2 /* UIView+Extension.swift */; };
 		50D58B0925FF465400BB8FB2 /* MainTableViewViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D58B0825FF465400BB8FB2 /* MainTableViewViewModel.swift */; };
-		50D58B0C25FF50BB00BB8FB2 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D58B0B25FF50BB00BB8FB2 /* Box.swift */; };
 		5B4240FB310F410C295E9123 /* Pods_YaWeather.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F4ACFE6ED67D7A275884748 /* Pods_YaWeather.framework */; };
 /* End PBXBuildFile section */
 
@@ -62,7 +61,6 @@
 		50D58AFD25FF046C00BB8FB2 /* UIViewNotificationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewNotificationExtension.swift; sourceTree = "<group>"; };
 		50D58B0025FF090F00BB8FB2 /* UIView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extension.swift"; sourceTree = "<group>"; };
 		50D58B0825FF465400BB8FB2 /* MainTableViewViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTableViewViewModel.swift; sourceTree = "<group>"; };
-		50D58B0B25FF50BB00BB8FB2 /* Box.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Box.swift; sourceTree = "<group>"; };
 		7C2907750006875F87D41EAB /* Pods-YaWeather.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YaWeather.debug.xcconfig"; path = "Target Support Files/Pods-YaWeather/Pods-YaWeather.debug.xcconfig"; sourceTree = "<group>"; };
 		8F4ACFE6ED67D7A275884748 /* Pods_YaWeather.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_YaWeather.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -149,7 +147,6 @@
 				509DDA0525D22FFB00D7C743 /* UILabel+AppStyle.swift */,
 				50D58AFD25FF046C00BB8FB2 /* UIViewNotificationExtension.swift */,
 				50D58B0025FF090F00BB8FB2 /* UIView+Extension.swift */,
-				50D58B0B25FF50BB00BB8FB2 /* Box.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -296,7 +293,6 @@
 				509DDA1E25D431B700D7C743 /* ActivityIndicator.swift in Sources */,
 				509DDA1825D38CF200D7C743 /* ForecastHoursCollectionViewCell.swift in Sources */,
 				509DDA0625D22FFC00D7C743 /* UILabel+AppStyle.swift in Sources */,
-				50D58B0C25FF50BB00BB8FB2 /* Box.swift in Sources */,
 				50D58B0925FF465400BB8FB2 /* MainTableViewViewModel.swift in Sources */,
 				509DD9EF25D1502E00D7C743 /* WeatherModel.swift in Sources */,
 				509DD9D925D14F0F00D7C743 /* SceneDelegate.swift in Sources */,
