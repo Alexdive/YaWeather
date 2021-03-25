@@ -106,12 +106,15 @@ struct CityCoordinate: Codable {
 }
 
 extension Weather: _ObjectiveCBridgeable {
-    static func _unconditionallyBridgeFromObjectiveC(_ source: NSString?) -> Weather {
-        self.init(fromObjectiveC: source ?? "")
-    }
+    
+    typealias _ObjectiveCType = NSString
     
     init(fromObjectiveC source: _ObjectiveCType) {
         self.name = source as String
+    }
+    
+    static func _unconditionallyBridgeFromObjectiveC(_ source: NSString?) -> Weather {
+        self.init(fromObjectiveC: source ?? "")
     }
     
     func _bridgeToObjectiveC() -> NSString {
@@ -126,9 +129,4 @@ extension Weather: _ObjectiveCBridgeable {
         _forceBridgeFromObjectiveC(source, result: &result)
         return true
     }
-    
-    
-    typealias _ObjectiveCType = NSString
-    
-    
 }

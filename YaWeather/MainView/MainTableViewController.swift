@@ -59,12 +59,15 @@ class MainTableViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupNavBar()
         setupViews()
         viewModel.setupCities {
             getWeather()
         }
         setupSearchController()
     }
+    
+    // MARK: - actions
     
     @objc func refresh() {
         if viewModel.cityNamesArray.isEmpty {
@@ -75,8 +78,6 @@ class MainTableViewController: UIViewController {
             getWeather()
         }
     }
-    
-    
     
     func getWeather() {
         activityIndicator.animateActivity(title: "Загрузка...", view: self.view, navigationItem: navigationItem)
@@ -151,11 +152,27 @@ class MainTableViewController: UIViewController {
         }
     }
     
+    @objc func searchTap() {
+        presentSearchBar()
+    }
+    
+    private func presentSearchBar() {
+        if navigationItem.searchController == nil {
+            navigationItem.searchController = searchController
+            
+        } else {
+            navigationItem.searchController = nil
+        }
+        searchController.hidesNavigationBarDuringPresentation = true
+        searchController.obscuresBackgroundDuringPresentation = false
+    }
+    
+    // MARK: - Setup UI
+    
     private func setupViews() {
         title = "YaWeather"
         view.backgroundColor = .white
         
-        configureNavBar()
         view.addSubview(tableView)
         tableView.addSubview(refreshControl)
         
@@ -167,7 +184,7 @@ class MainTableViewController: UIViewController {
         }
     }
     
-    private func configureNavBar() {
+    private func setupNavBar() {
         
         let largeConfig = UIImage.SymbolConfiguration(pointSize: 24,
                                                       weight: .regular,
@@ -197,23 +214,7 @@ class MainTableViewController: UIViewController {
         self.navigationItem.rightBarButtonItem = rightBarButton
     }
     
-    @objc func searchTap() {
-        presentSearchBar()
-    }
-    
-    private func presentSearchBar() {
-        if navigationItem.searchController == nil {
-            navigationItem.searchController = searchController
-            
-        } else {
-            navigationItem.searchController = nil
-        }
-        searchController.hidesNavigationBarDuringPresentation = true
-        searchController.obscuresBackgroundDuringPresentation = false
-    }
-    
     private func setupSearchController() {
-        
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Поиск"

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import MobileCoreServices
 
 class Storage {
     private let decoder = JSONDecoder()
